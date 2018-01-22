@@ -13,36 +13,7 @@ import (
 	"fmt"
 	"encoding/json"
 )
-//@description	日志记录工具类
-/*
-日志功能：提供自定义多文件多类型日志记录，对外暴露Println方法，main中调用StartProvider对log进行初始化，需在配置文件(config.ini)中配置日志相关文件的属性配置。
-配置文件说明：
-[Log]   //根节点，必须配置
-LoggerType= Debug,Error,Info //自定义文件名称作为根节点的子节点,
-FilePath  //文件路径，
-DirDataPattern  //是否按日期拆分文件夹  传空不拆
-CutType= 1 //分割方式  1：日期，2：文件大小，3：不分割
-MaxFileSize= 10000 //最大文件大小
-BufferLength	//缓存区大小
-MaxChannelSize //通道最大数
-DatePattern= 2006010203  //日期格式，(请严格按照time.format方式设置)
-Is_debug = true //是否调试模式，调试模式下输出到控制台
-
-[Debug]
-Debug_enable= true //是否输出文件  设置为false 不生成文件
-Debug_fileName= debug.log //文件名称
-
-日志输入操作	Println换行打印
-日志内容：文本数据
-日志锁机制：缓冲锁 mu_buf  文件锁 mu_file
-日志监听操作
-	A.channel数据监听 （队列缓冲作用，定义channel大小，防内存溢出）
-		1.读取channel队列数据，写入buffer
-		2.判断是否需要重命名(文件大小或日期过期)  判断buffer大小
-		3.满足2判断条件写入文件
-	B.定时监听：
-		1.每5秒将非空buffer写入文件 防日志堆积和长时间无日志入队
-*/
+//@description	高并发日志记录工具类
 
 //-----const----------------------------------------
 const (
@@ -143,7 +114,6 @@ func initLog() error {
 		}
 		yxplog.logFile[v.name]=file
 	}
-	//消费channel
 	for _,v:=range settingArr {
 		go  runChannel(v)
 		go  runTime()
@@ -342,8 +312,6 @@ func checkFileDir() {
 		}
 	}
 }
-
-
 
 //---------------------对外提供方法---------------
 func Println(paramstr ...string)bool  {
